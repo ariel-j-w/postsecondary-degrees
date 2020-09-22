@@ -4,7 +4,7 @@ Investigation of demographics of those receiving various levels of postsecondary
 Currently this project is a work in progress, and much future work is expected.
 
 ## Pre-processing
-The file `pre-processing.rmd` brings in the raw data retrieved from from the [National Center for Education Statistics](https://nces.ed.gov/programs/digest/current_tables.asp) and creates tidy tables of data. This file transforms:
+The file `pre-processing.Rmd` brings in the raw data retrieved from from the [National Center for Education Statistics](https://nces.ed.gov/programs/digest/current_tables.asp) and creates tidy tables of data. This file transforms:
 - `tabn324.20.csv` into `doctoral.csv`
 
 ## Exploratory Data Analysis

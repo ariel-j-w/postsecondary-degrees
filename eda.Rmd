@@ -1,0 +1,130 @@
+---
+title: "EDA"
+author: "Ariel Wentworth"
+date: "September 2020"
+---
+
+```{r libraries}
+library('tidyverse')
+```
+
+
+# The Gender Gap: by Degree Level
+We will first do some exploration of degrees conferred, separated by degree level.
+
+## Doctor's
+```{r read doctors}
+doctors <- read_csv('data/doctors.csv')
+head(doctors)
+```
+
+```{r select: doctors by sex}
+doctors_by_sex <- doctors %>%
+  select(Sex, Year, Total) %>%
+  group_by(Year) %>%
+  filter(Sex!="Total")
+
+head(doctors_by_sex)
+```
+
+```{r grouped eda doctors}
+ggplot(doctors_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  geom_bar(position="dodge", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+Though females seem to be steadily increasing over time, male degrees fluctate much more.
+
+```{r stacked eda doctors}
+ggplot(doctors_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  geom_bar(position="stack",stat="identity") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r proportion eda doctors}
+ggplot(doctors_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  geom_bar(position="fill", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  geom_abline(slope=0, intercept = 0.5)
+```
+
+Around 2005 was when females and males were earning doctorate degrees equally. Since then, females have been taking an increasing amount of the proportion, but still not startling more than 50%.
+
+## Masters
+```{r read masters}
+masters <- read_csv('data/masters.csv')
+head(masters)
+```
+
+```{r select: masters by sex}
+masters_by_sex <- masters %>%
+  select(Sex, Year, Total) %>%
+  group_by(Year) %>%
+  filter(Sex!="Total")
+
+head(masters_by_sex)
+```
+
+```{r grouped eda masters}
+ggplot(masters_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  geom_bar(position="dodge", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+Though both male and female masters degrees seem to be gaining over time, there has been increasingly more degrees conferred to females, especially in the 21st century.
+
+```{r stacked eda masters}
+ggplot(masters_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  geom_bar(position="stack",stat="identity") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r proportion eda masters}
+ggplot(masters_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  geom_bar(position="fill", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  geom_abline(slope=0, intercept = 0.5)
+```
+
+Around 1981, women and men were earning bachelors degrees at similar rates, and into the 21st century females starting gaining on males much more rapidly. Since the start of the 21st century, only incremental changes have occured.
+
+## Bachelors
+```{r read bachlors}
+bachelors <- read_csv('data/bachelors.csv')
+head(bachelors)
+```
+
+```{r select: bachelors by sex}
+bachelors_by_sex <- bachelors %>%
+  select(Sex, Year, Total) %>%
+  group_by(Year) %>%
+  filter(Sex!="Total")
+
+head(bachelors_by_sex)
+```
+
+```{r grouped eda bachelors}
+ggplot(bachelors_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  geom_bar(position="dodge", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+Both males and females are increasing over time, though it seems females may be increasing more rapidly.
+
+```{r stacked eda bachelors}
+ggplot(bachelors_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  geom_bar(position="stack",stat="identity") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r proportion eda bachelors}
+ggplot(bachelors_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  geom_bar(position="fill", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  geom_abline(slope=0, intercept = 0.5)
+```
+
+Around 1981, women and men were earning equal amounts of bachelor's degrees. Since about 2000, it seems that the proportion of women vs men earning bachelor's degrees has stayed pretty consistent around a 60-40 split.
+
+
+

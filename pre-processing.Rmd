@@ -1,0 +1,83 @@
+---
+title: "Pre-processing"
+author: "Ariel Wentworth"
+date: "September 2020"
+---
+
+```{r}
+library(xlsx)
+library(tidyverse)
+library(stringr)
+```
+
+## Doctor's Degrees
+We first load in the raw data, and give appropriate column names based on manual examination of the original excel file. The first 3 rows and the footnotes (which are skipped in the loading of the data) provide adequate information to name the columns. We also know through manual examination of the file that we can identify useless rows based upon the value in the `Year` column, and we elimiinate those unnecessary rows from our dataset. 
+
+```{r doctors: load raw}
+doctors <- read.xlsx('data/raw/tabn324.20.xls', 2, rowIndex = 4:78, colIndex = 1:10)
+head(doctors)
+```
+
+```{r doctors: name columns}
+names(doctors) <- c('Sex', 'Year', 'Total', 'White', 'Black', 'Hispanic', 'Asian/Pacific Islander', 
+                    'American Indian/Alaska Native', 'Two or more races', 'Non-resident alien')
+head(doctors, 10)
+```
+
+```{r doctors: filter rows}
+doctors <- doctors[ !(doctors$Year %in% c('Total', 'Males', 'Females', NA)), ]
+doctors
+```
+
+We now have the rows and columns we want, but a small amount of processing is also needed in the columns `Year` and `Two or more races` to clean up the formatting of the data.
+
+```{r doctors: cleaning}
+doctors$Year <- str_replace(doctors$Year, "1999-2000", "1999-00")
+doctors$Year <- str_extract(doctors$Year, "\\d{4}-\\d{2}")
+doctors$`Two or more races` <- na_if(doctors$`Two or more races`, '---')
+doctors$`Two or more races` <- as.numeric(doctors$`Two or more races`)
+head(doctors)
+```
+
+Finally, we will take our transformed dataframe and save it to a csv for use in other files.
+```{r doctors: write}
+write_csv(doctors, 'data/doctors.csv')
+```
+
+## Master's Degrees
+
+Similarly, we process the master's degrees.
+```{r masters: load and clean}
+masters <- read.xlsx('data/raw/tabn323.20.xls', 2, rowIndex = 4:78, colIndex = 1:10)
+names(masters) <- c('Sex', 'Year', 'Total', 'White', 'Black', 'Hispanic', 'Asian/Pacific Islander', 
+                    'American Indian/Alaska Native', 'Two or more races', 'Non-resident alien')
+masters <- masters[ !(masters$Year %in% c('Total', 'Males', 'Females', NA)), ]
+masters$Year <- str_replace( masters$Year, "1999-2000", "1999-00")
+masters$Year <- str_extract(masters$Year, "\\d{4}-\\d{2}")
+masters$`Two or more races` <- na_if(masters$`Two or more races`, '---')
+masters$`Two or more races` <- as.numeric(masters$`Two or more races`)
+masters
+```
+
+```{r masters: write}
+write_csv(masters, 'data/masters.csv')
+```
+
+## Bachelor's Degrees
+
+Now, a similar process with the bachelor's degrees.
+```{r bachelors: load and clean}
+bachelors <- read.xlsx('data/raw/tabn322.20.xls', 2, rowIndex = 4:78, colIndex = 1:10)
+names(bachelors) <- c('Sex', 'Year', 'Total', 'White', 'Black', 'Hispanic', 'Asian/Pacific Islander', 
+                    'American Indian/Alaska Native', 'Two or more races', 'Non-resident alien')
+bachelors <- bachelors[ !(bachelors$Year %in% c('Total', 'Males', 'Females', NA)), ]
+bachelors$Year <- str_replace(bachelors$Year, "1999-2000", "1999-00")
+bachelors$Year <- str_extract(bachelors$Year, "\\d{4}-\\d{2}")
+bachelors$`Two or more races` <- na_if(doctors$`Two or more races`, '---')
+bachelors$`Two or more races` <- as.numeric(doctors$`Two or more races`)
+bachelors
+```
+
+```{r bachelors: write}
+write_csv(bachelors, 'data/bachelors.csv')
+```
