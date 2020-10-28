@@ -2,6 +2,7 @@
 title: "EDA"
 author: "Ariel Wentworth"
 date: "September 2020"
+output: pdf_document
 ---
 
 ```{r libraries}
@@ -29,6 +30,7 @@ head(doctors_by_sex)
 
 ```{r grouped eda doctors}
 ggplot(doctors_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  ggtitle("U.S. doctoral degrees conferred over time, by gender") +
   geom_bar(position="dodge", stat="identity") +
   theme(axis.text.x = element_text(angle = 90))
 ```
@@ -37,12 +39,14 @@ Though females seem to be steadily increasing over time, male degrees fluctate m
 
 ```{r stacked eda doctors}
 ggplot(doctors_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  ggtitle("U.S. doctoral degrees conferred over time, by gender") +
   geom_bar(position="stack",stat="identity") +
   theme(axis.text.x = element_text(angle = 90))
 ```
 
 ```{r proportion eda doctors}
 ggplot(doctors_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  ggtitle("Proportion of U.S. doctoral degrees conferred over time, by gender") +
   geom_bar(position="fill", stat="identity") +
   theme(axis.text.x = element_text(angle = 90)) +
   geom_abline(slope=0, intercept = 0.5)
@@ -67,6 +71,7 @@ head(masters_by_sex)
 
 ```{r grouped eda masters}
 ggplot(masters_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  ggtitle("U.S. masters degrees conferred over time, by gender") +
   geom_bar(position="dodge", stat="identity") +
   theme(axis.text.x = element_text(angle = 90))
 ```
@@ -75,12 +80,14 @@ Though both male and female masters degrees seem to be gaining over time, there 
 
 ```{r stacked eda masters}
 ggplot(masters_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  ggtitle("U.S. masters degrees conferred over time, by gender") +
   geom_bar(position="stack",stat="identity") +
   theme(axis.text.x = element_text(angle = 90))
 ```
 
 ```{r proportion eda masters}
 ggplot(masters_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  ggtitle("Proportion of U.S. masters degrees conferred over time, by gender") +
   geom_bar(position="fill", stat="identity") +
   theme(axis.text.x = element_text(angle = 90)) +
   geom_abline(slope=0, intercept = 0.5)
@@ -105,6 +112,7 @@ head(bachelors_by_sex)
 
 ```{r grouped eda bachelors}
 ggplot(bachelors_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  ggtitle("U.S. bachelors degrees conferred over time, by gender") +
   geom_bar(position="dodge", stat="identity") +
   theme(axis.text.x = element_text(angle = 90))
 ```
@@ -113,12 +121,14 @@ Both males and females are increasing over time, though it seems females may be 
 
 ```{r stacked eda bachelors}
 ggplot(bachelors_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  ggtitle("U.S. bachlors degrees conferred over time, by gender") +
   geom_bar(position="stack",stat="identity") +
   theme(axis.text.x = element_text(angle = 90))
 ```
 
 ```{r proportion eda bachelors}
 ggplot(bachelors_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  ggtitle("Proportion of U.S. bachelors degrees conferred over time, by gender") +
   geom_bar(position="fill", stat="identity") +
   theme(axis.text.x = element_text(angle = 90)) +
   geom_abline(slope=0, intercept = 0.5)
@@ -126,5 +136,44 @@ ggplot(bachelors_by_sex, aes(fill=Sex, y=Total, x=Year)) +
 
 Around 1981, women and men were earning equal amounts of bachelor's degrees. Since about 2000, it seems that the proportion of women vs men earning bachelor's degrees has stayed pretty consistent around a 60-40 split.
 
+## Associates
+```{r read associates}
+associates <- read_csv('data/associates.csv')
+head(associates)
+```
 
+```{r select: associates by sex}
+associates_by_sex <- associates %>%
+  select(Sex, Year, Total) %>%
+  group_by(Year) %>%
+  filter(Sex!="Total")
+
+head(associates_by_sex)
+```
+
+```{r grouped eda associates}
+ggplot(associates_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  ggtitle("U.S. associates degrees conferred over time, by gender") +
+  geom_bar(position="dodge", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+Both males and females are mostly increasing over time (potentially with a peak around 2011), though it seems females are increasing much more rapidly.
+
+```{r stacked eda associates}
+ggplot(associates_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  ggtitle("U.S. associates degrees conferred over time, by gender") +
+  geom_bar(position="stack",stat="identity") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r proportion eda associates}
+ggplot(associates_by_sex, aes(fill=Sex, y=Total, x=Year)) + 
+  ggtitle("Proportion of U.S. associates degrees conferred over time, by gender") +
+  geom_bar(position="fill", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  geom_abline(slope=0, intercept = 0.5)
+```
+
+Since the 80's women have been earning more associate's degrees than men. The difference here is much more pronouced than in higher levels of education, and is extremely persistent today.
 

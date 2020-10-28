@@ -1,0 +1,120 @@
+---
+title: "Exponential Smoothing"
+author: "Ariel Wentworth"
+date: "October 2020"
+output: pdf_document
+---
+
+```{r}
+library(tidyverse)
+library(fpp2)
+library(reshape2)
+library(gridExtra)
+```
+
+For our purposes we will use the holt function (aka double exponential smoothing) as we aim to identify trends without 
+
+```{r holt_forecast}
+holt_forecast <- function(data, level, firstYear) {
+  data <- data[data$`Degree level`==level, c('Year', 'Count type', 'value')] %>%
+    dcast(Year~`Count type`, value.var='value') %>%
+    mutate(femaleProp = Female / (Male + Female))
+  data.ts <- data[data$Year>=firstYear,]
+  data.holt <- holt(data.ts$femaleProp, h=12)
+  autoplot(data.holt) + 
+    geom_hline(yintercept = 0.5) +
+    expand_limits(ymin = 0)
+}
+```
+
+```{r}
+forecast_all <- function(data, firstYear) {
+  bach <- holt_forecast(data, 'Bachelor', firstYear)
+  masters <- holt_forecast(data, 'Master', firstYear)
+  doctor <- holt_forecast(data, 'Doctor', firstYear)
+  grid.arrange(bach, masters, doctor, ncol = 3)
+}
+```
+
+# Mathematics and Statistics
+
+```{r read math_stats}
+math_stats <- read_csv('data/math_stats.csv')
+head(math_stats, 10)
+```
+
+```{r}
+forecast_all(math_stats, 1970)
+```
+
+# Computer Science and Information Science
+
+```{r read csis}
+csis <- read_csv('data/csis.csv')
+head(csis, 10)
+```
+```{r forecast csis}
+forecast_all(csis, 1971)
+```
+
+# Biological and Biomedical Sciences
+
+```{r read bio}
+bio_sci <- read_csv('data/bio_sci.csv')
+head(bio_sci, 13)
+```
+
+```{r forecast bio}
+forecast_all(bio, 1970)
+```
+
+## Engineering and Engineering Technologies
+```{r read_eng}
+eng <- read_csv('data/eng.csv')
+head(eng,10)
+```
+
+```{r forecast eng}
+forecast_all(eng, 1970)
+```
+
+## Health Professions and Related Fields
+```{r read health}
+health <- read_csv('data/health.csv')
+head(health, 10)
+```
+
+```{r forecast health}
+forecast_all(health, 1971)
+```
+
+## Physical Sciences and Science Technologies
+```{r read physics}
+physics <- read_csv('data/physics.csv')
+head(physics, 10)
+```
+
+```{r}
+forecast_all(physics, 1970)
+```
+
+## Psychology
+```{r read psych}
+psych <- read_csv('data/psych.csv')
+head(psych, 10)
+```
+
+```{r forecast psych}
+forecast_all(psych, 1970)
+```
+
+## Social Sciences and History
+```{r read social}
+social <- read_csv('data/social.csv')
+head(social, 10)
+```
+
+```{r forecast social}
+forecast_all(social, 1971)
+```
+

@@ -8,8 +8,9 @@ date: "September 2020"
 library(xlsx)
 library(tidyverse)
 library(stringr)
+library(reshape2)
 ```
-
+# Degrees conferred by gender and ethnicity, over time
 ## Doctor's Degrees
 We first load in the raw data, and give appropriate column names based on manual examination of the original excel file. The first 3 rows and the footnotes (which are skipped in the loading of the data) provide adequate information to name the columns. We also know through manual examination of the file that we can identify useless rows based upon the value in the `Year` column, and we elimiinate those unnecessary rows from our dataset. 
 
@@ -73,11 +74,105 @@ names(bachelors) <- c('Sex', 'Year', 'Total', 'White', 'Black', 'Hispanic', 'Asi
 bachelors <- bachelors[ !(bachelors$Year %in% c('Total', 'Males', 'Females', NA)), ]
 bachelors$Year <- str_replace(bachelors$Year, "1999-2000", "1999-00")
 bachelors$Year <- str_extract(bachelors$Year, "\\d{4}-\\d{2}")
-bachelors$`Two or more races` <- na_if(doctors$`Two or more races`, '---')
-bachelors$`Two or more races` <- as.numeric(doctors$`Two or more races`)
+bachelors$`Two or more races` <- na_if(bachelors$`Two or more races`, '---')
+bachelors$`Two or more races` <- as.numeric(bachelors$`Two or more races`)
 bachelors
 ```
 
 ```{r bachelors: write}
 write_csv(bachelors, 'data/bachelors.csv')
 ```
+
+## Associate's Degrees
+
+Finally, we repeat the process with our associate's data.
+```{r associates: load and clean}
+associates <- read.xlsx('data/raw/tabn321.20.xls', 2, rowIndex = 4:78, colIndex = 1:10)
+names(associates) <- c('Sex', 'Year', 'Total', 'White', 'Black', 'Hispanic', 'Asian/Pacific Islander', 
+                    'American Indian/Alaska Native', 'Two or more races', 'Non-resident alien')
+associates <- associates[ !(associates$Year %in% c('Total', 'Males', 'Females', NA)), ]
+associates$Year <- str_replace(associates$Year, "1999-2000", "1999-00")
+associates$Year <- str_extract(associates$Year, "\\d{4}-\\d{2}")
+associates$`Two or more races` <- na_if(associates$`Two or more races`, '---')
+associates$`Two or more races` <- as.numeric(associates$`Two or more races`)
+associates
+```
+
+```{r associates: write}
+write_csv(associates, 'data/associates.csv')
+```
+
+# Degrees conferred in a specific field, by gender, over time
+```{r}
+write_field_csv <- function(inFile, rowIdx, outFile) {
+  data <- read.xlsx(inFile, 1, 
+                        rowIndex =  rowIdx,
+                        colIndex = c(1, 2, 4, 5, 7:12))
+  names(data) <- c('Year',
+                       'Bachelor Total', 'Bachelor Male', 'Bachelor Female',
+                       'Master Total', 'Master Male', 'Master Female', 
+                       'Doctor Total', 'Doctor Male', 'Doctor Female')
+  data <- data[!is.na(data$Year),]
+  data$Year <- str_extract(data$Year, '\\d{4}')
+  data$Year <- as.numeric(as.character(data$Year)) + 1
+  data$`Bachelor Male` <- as.numeric(as.character(data$`Bachelor Male`))
+  data$`Bachelor Female` <- as.numeric(as.character(data$`Bachelor Female`))
+  data$`Bachelor Total` <- as.numeric(as.character(data$`Bachelor Total`))
+  data$`Master Male` <- as.numeric(as.character(data$`Master Male`))
+  data$`Master Female` <- as.numeric(as.character(data$`Master Female`))
+  data$`Master Total` <- as.numeric(as.character(data$`Master Total`))
+  data$`Doctor Male` <- as.numeric(as.character(data$`Doctor Male`))
+  data$`Doctor Female` <- as.numeric(as.character(data$`Doctor Female`))
+  data$`Doctor Total` <- as.numeric(as.character(data$`Doctor Total`))
+  data <- melt(data, id = 'Year')
+  data$`Degree level` <- str_extract(data$variable, "^\\w+")
+  data$`Count type` <- str_extract(data$variable, "\\w+$")
+  data <- data[,c('Year', 'Degree level', 'Count type', 'value')]
+  write_csv(data, outFile)
+}
+```
+
+
+
+## Mathematics and Statistics
+```{r math & stats: write_field_csv}
+write_field_csv('data/raw/tabn325.65.xls', 5:67, 'data/math_stats.csv')
+```
+
+## Computer Science and Information Systems
+```{r computer science & information systems: write_field_csv}
+write_field_csv('data/raw/tabn325.35.xls', 5:62, 'data/csis.csv')
+```
+
+## Biological and Biomedical Sciences
+```{r write csv: bio}
+write_field_csv('data/raw/tabn325.20.xls', 5:74, 'data/bio.csv')
+```
+
+## Engineering and Engineering Technologies
+```{r write csv: eng}
+write_field_csv('data/raw/tabn325.45.xls', 5:66, 'data/eng.csv')
+```
+
+## Health Professions and Related Programs
+```{r write csv: health}
+write_field_csv('data/raw/tabn325.60.xls', 5:62, 'data/health.csv')
+```
+
+## Physical Sciences and Science Technologies
+```{r write csv: physics}
+write_field_csv('data/raw/tabn325.70.xls', 5:66, 'data/physics.csv')
+```
+
+## Psychology
+```{r write csv: psych}
+write_field_csv('data/raw/tabn325.80.xls', 5:67, 'data/psych.csv')
+```
+
+## Social Sciences and History
+```{r write csv: social}
+write_field_csv('data/raw/tabn325.90.xls', 5:62, 'data/social.csv')
+```
+
+
+
