@@ -1,0 +1,416 @@
+---
+title: "Trends in Selected STEM Fields"
+author: "Ariel Wentworth"
+date: "October 2020"
+output: pdf_document
+---
+
+```{r}
+library(tidyverse)
+library(fpp2)
+library(reshape2)
+library(gridExtra)
+library(ggrepel)
+```
+
+# Trends in specific fields
+Our first task with this data will be to plot and predict the trends in the proportion of female degree-earning across different STEM fields at the bachelor's, master's, and doctor's levels of degrees. We will use all available data we have for each field, _given that_ the data is available for *every consecutive year* from our starting point until the most recently available year (in our case, the 2017-2018 U.S. academic year). There is more information in `pre-processing.Rmd` about where this data comes from, and how we selected the fields for analysis.
+
+One question that we are trying to answer with this data is _what could be expected by 2030_? Thus, we will perform time series analysis to make this prediction for each combination of degree level and field. For our purposes we will use the holt function (aka double exponential smoothing) as we aim to identify trends without expecting seasonal patterns.
+
+```{r holt_forecast}
+holt_forecast <- function(data, level, firstYear, plot_title = NULL, export = FALSE, plot_fname = NULL) {
+  # Filter down to the data we care about
+  data <- data[data$`Degree level`==level, c('Year', 'Count type', 'value')] %>%
+    dcast(Year~`Count type`, value.var='value') %>%
+    mutate(femaleProp = Female / (Male + Female))
+  data <- data[data$Year >= firstYear,]
+  
+  # Perform holt's exponential smoothing
+  data.holt <- holt(data$femaleProp, h=12)
+  
+  # Massage forecasted data into helpful formats
+  data.forecast <- as.data.frame(data.holt) %>%
+    mutate(Year = 2019:2030, Forecast = `Point Forecast`) %>%
+    select(Year, Forecast, `Lo 95`, `Hi 95`)
+  data$Year <- as.integer(data$Year)
+  data.full <- merge(data.forecast, data, all = TRUE)
+  
+  # Plot the data
+  labelColor50percent = if(data[data$Year==1975,'femaleProp'] >= 0.5) "white" else "black"
+  if(export) {
+    # Do the nice formatting for plots that we want to save
+    plt <- ggplot(data = data.full, aes(x = Year)) +
+      geom_area(aes(y = femaleProp), alpha = 0.9, fill = '#663a82', color = '#52307c') +
+      geom_area(aes(y = Forecast), alpha = 0.7, fill = '#663a82', color = '#52307c') +
+      geom_ribbon(aes(ymin = `Lo 95`, ymax = `Hi 95`), alpha=.5) +
+      expand_limits(ymin = 0, ymax = 1.0, xmin = 1970, xmax = 2030) +
+      geom_hline(yintercept = 0.5, color = '#3c3c3c') +
+      labs(title = plot_title,
+        subtitle = paste('Historical data ', firstYear, '-2018, forecasted data 2019-2030', sep = ''),
+        y = 'Proportion of degrees earned by females',
+        caption = 'Data Source: NCES 2019 Digest Tables') +
+      annotate("label", x = c(1994, 2024.5), 
+               y = c(data[data$Year==1994, 'femaleProp']/2, 
+                     data.forecast[data.forecast$Year==2024, 'Forecast']/2), 
+               label = c('Historical\nData', 'Forecasted\nData'), 
+               color = '#52307c', size = 3, fontface = 'bold') +
+      annotate("label", x = 2024,
+               y = data.forecast[data.forecast$Year==2024, 'Hi 95']+0.035,
+               label = 'Forecast\n95% CI',
+               color = '#3c3c3c', size = 2.5) +
+      annotate("text", x = 1980, y = 0.515, size = 2,
+               label = '50% of degrees earned by women',
+               color = labelColor50percent)
+      ggsave(plot_fname, plt, width = 8, height = 5, path = 'graphs')
+      # plt # Uncomment to display plot within R
+  } else {
+    # Quick and dirty plotting for easy comparison within R
+    autoplot(data.holt) +
+      geom_hline(yintercept = 0.5) +
+      expand_limits(ymin = 0)
+  }
+}
+```
+
+The following function, `forecast_all`, is used to have a quick visualization of the trends in each field living within this document. These graphs will be created using `autoplot`, so they are not very pretty, but we can put the bachelor's, master's, and doctor's degrees side by side in order to roughly identify some trends.
+
+```{r forecast_all}
+forecast_all <- function(data, firstYear) {
+  bach <- holt_forecast(data, 'Bachelor', firstYear)
+  masters <- holt_forecast(data, 'Master', firstYear)
+  doctor <- holt_forecast(data, 'Doctor', firstYear)
+  grid.arrange(bach, masters, doctor, ncol = 3)
+}
+```
+
+For nicer graphs, we will save png's using the following function (`save_all`). Ultimately, these are the graphs that will be used in our final paper and presentation. We will save these in the `graphs` subdirectory.
+
+```{r save_all}
+save_all <- function(data, firstYear, degree_types, file_prefix) {
+  
+  
+  holt_forecast(data, 'Bachelor', firstYear, 
+                plot_title = paste('U.S. Bachelor\'s Degrees in', degree_types, sep = ' '),
+                export = TRUE,
+                plot_fname = paste(file_prefix, 'bachelors.png', sep = '_')
+                )
+  
+  holt_forecast(data, 'Master', firstYear, 
+                plot_title = paste('U.S. Master\'s Degrees in', degree_types, sep = ' '),
+                export = TRUE,
+                plot_fname = paste(file_prefix, 'masters.png', sep = '_')
+                )
+  
+  holt_forecast(data, 'Doctor', firstYear, 
+                plot_title = paste('U.S. Doctor\'s Degrees in', degree_types, sep = ' '),
+                export = TRUE,
+                plot_fname = paste(file_prefix, 'doctors.png', sep = '_')
+                )
+}
+```
+
+
+# Mathematics and Statistics
+
+```{r read math_stats}
+math_stats <- read_csv('data/math_stats.csv')
+head(math_stats, 10)
+```
+
+```{r forecast math_stats}
+forecast_all(math_stats, 1970)
+```
+
+```{r save math_stats}
+save_all(math_stats, 1970, 'Mathematics and Statistics', 'math_stats')
+```
+
+
+# Computer Science and Information Science
+
+```{r read csis}
+csis <- read_csv('data/csis.csv')
+head(csis, 10)
+```
+```{r forecast csis}
+forecast_all(csis, 1971)
+```
+
+```{r save csis}
+save_all(csis, 1971, 'Computer Science and Information Systems', 'csis')
+```
+
+# Biological and Biomedical Sciences
+
+```{r read bio}
+bio <- read_csv('data/bio.csv')
+head(bio, 12)
+```
+
+```{r forecast bio}
+forecast_all(bio, 1970)
+```
+
+```{r save bio}
+save_all(bio, 1970, 'Biological and Biomedical Sciences', 'bio')
+```
+
+
+## Engineering and Engineering Technologies
+```{r read_eng}
+eng <- read_csv('data/eng.csv')
+head(eng,10)
+```
+
+```{r forecast eng}
+forecast_all(eng, 1970)
+```
+
+```{r save eng}
+save_all(eng, 1970, 'Engineering and Engineering Technologies', 'eng')
+```
+
+
+## Health Professions and Related Fields
+```{r read health}
+health <- read_csv('data/health.csv')
+head(health, 10)
+```
+
+```{r forecast health}
+forecast_all(health, 1971)
+```
+
+```{r save health}
+save_all(health, 1971, 'Health Professions and Related Fields', 'health')
+```
+
+
+## Physical Sciences and Science Technologies
+```{r read physics}
+physics <- read_csv('data/physics.csv')
+head(physics, 10)
+```
+
+```{r}
+forecast_all(physics, 1970)
+```
+
+```{r}
+save_all(physics, 1970, 'Physical Sciences and Science Technologies', 'physics')
+```
+
+## Psychology
+```{r read psych}
+psych <- read_csv('data/psych.csv')
+head(psych, 10)
+```
+
+```{r forecast psych}
+forecast_all(psych, 1970)
+```
+
+```{r}
+save_all(psych, 1970, 'Psychology', 'psych')
+```
+
+
+## Social Sciences and History
+```{r read social}
+social <- read_csv('data/social.csv')
+head(social, 10)
+```
+
+```{r forecast social}
+forecast_all(social, 1971)
+```
+
+```{r save social}
+save_all(social, 1971, 'Social Sciences and History', 'social')
+```
+
+
+# Trends across fields
+Visualizing and understanding the trends in specific fields is nice, but it's also helpful and important to understand aggregate trends, and compare the fields to each other. For most of these analyses, we will focus on three data points: 1971, 2018, and 2030. 1971 because it is the earliest year included in *all* above analyses (some fields also include 1970, but that data is not universally available). We include 2018 because it is the most recent year of actual data that we have to reference. Finally, we take a look at 2030 since this is our reference group for future predictions. As a note, all 2030 data points in these visualizations will be the _mean_ of the 95% confidence interval from the forecast.
+
+## Aggregating the data
+First, we need to collect and aggregate all the data that we want into a single data frame!
+
+
+```{r collect_datum}
+collect_datum <- function(data, level, year) {
+  data <- data[data$Year==year,]
+  data <- data[data$`Degree level`==level,]
+  data <- data[data$`Count type` %in% c('Male', 'Female'),] %>%
+    dcast(Year~`Count type`, value.var='value') %>%
+    mutate(femaleProp = Female / (Male + Female))
+  data[,'femaleProp']
+}
+```
+
+```{r collect_2030}
+collect_2030 <- function(data, level, firstYear) {
+  # Filter down to the data we care about
+  data <- data[data$`Degree level`==level, c('Year', 'Count type', 'value')] %>%
+    dcast(Year~`Count type`, value.var='value') %>%
+    mutate(femaleProp = Female / (Male + Female))
+  data <- data[data$Year >= firstYear,]
+  
+  # Perform holt's exponential smoothing and grab last value
+  data.holt <- as.data.frame(holt(data$femaleProp, h=12))
+  data.holt[nrow(data.holt),'Point Forecast']
+}
+```
+
+
+```{r collect_relevant}
+collect_relevant <- function(data, field_id, firstYear) {
+  df <- data.frame('Field' = c(field_id),
+                   'Year' = c(1971, 2018, 2030),
+                   'Level' = c('Bachelor', 'Bachelor', 'Bachelor',
+                               'Master', 'Master', 'Master',
+                               'Doctor', 'Doctor', 'Doctor'),
+                   'FemaleProp' = c(collect_datum(data, 'Bachelor', 1971),
+                                           collect_datum(data, 'Bachelor', 2018),
+                                           collect_2030(data, 'Bachelor', firstYear),
+                                           collect_datum(data, 'Master', 1971),
+                                           collect_datum(data, 'Master', 2018),
+                                           collect_2030(data, 'Master', firstYear),
+                                           collect_datum(data, 'Doctor', 1971),
+                                           collect_datum(data, 'Doctor', 2018),
+                                           collect_2030(data, 'Doctor', firstYear)))
+  df
+}
+```
+
+```{r create df.all}
+df.math_stats <- collect_relevant(math_stats, 'Mathematics', 1970)
+df.csis <- collect_relevant(csis, 'Computer Science', 1971)
+df.bio <- collect_relevant(bio, 'Biology', 1970)
+df.eng <- collect_relevant(eng, 'Engineering', 1970)
+df.health <- collect_relevant(health, 'Health Fields', 1971)
+df.physics <- collect_relevant(physics, 'Physics', 1970)
+df.psych <- collect_relevant(psych, 'Psychology', 1970)
+df.social <- collect_relevant(social, 'Social Sciences', 1971)
+
+df.all <- rbind(df.math_stats, df.csis, df.bio, df.eng, df.health, df.physics, df.psych, df.social)
+df.all$Level <- factor(df.all$Level, levels = c('Bachelor', 'Master', 'Doctor'))
+df.all
+```
+
+
+## Graphs by year
+Here, we will make three grouped bar charts (1971, 2018, and 2030) which show degree trends across all degree levels, grouped by field.
+
+```{r yearly_grouped}
+yearly_grouped <- function(data, year) {
+  data <- data[data$Year==year,]
+  
+  if (year == 2030) {
+    plot_title = 'Projected 2030 U.S. STEM degrees, by field and level'
+    plot_sub = 'Proportion of degrees to be awarded to women'
+  } else {
+    plot_title = paste(year, 'U.S. STEM degrees, by field and level', sep = ' ')
+    plot_sub = 'Proportion of degrees awarded to women'
+  }
+  
+  plt <- ggplot(data, aes(fill=Level, y=FemaleProp, x=reorder(Field, FemaleProp))) +
+    geom_bar(position=position_dodge(width = 0.75), stat='identity', width = 0.6) +
+    scale_fill_manual(values = c('#b78cd1', '#663a82', '#31074d')) +
+    ggtitle(title) +
+    labs(title = plot_title, subtitle = plot_sub, x = 'STEM field') +
+    theme(axis.text.x = element_text(angle = 25), axis.title.y = element_blank()) +
+    geom_hline(yintercept = 0.5, color = '#3c3c3c') +
+    annotate("text", x = 2, y = 0.515, size = 2,
+               label = '50% of degrees earned by women') +
+    expand_limits(ymax=0.9)
+  
+  ggsave(paste('grouped_', year, '.png', sep = ''), plt, width = 7, height = 5, path = 'graphs')
+  plt
+}
+```
+
+### 1971
+```{r}
+yearly_grouped(df.all, 1971)
+```
+
+### 2018
+```{r}
+yearly_grouped(df.all, 2018)
+```
+
+### 2030
+```{r}
+yearly_grouped(df.all, 2030)
+```
+
+## Slope Chart
+
+Those graphs are useful (especially for looking at the variations by degree levels for each degree field each year), but to really compare year-to-year trends, a slope graph would help us see the full picture. We will make one for each of the three degree levels.
+
+
+```{r}
+slope_graph <- function(data, level) {
+  data <- data[data$Level==level,]
+  
+  plt <- ggplot(data, aes(x = Year, y = FemaleProp, group = Field)) +
+    geom_line(aes(color = Field, alpha = 1), size = 1) + 
+    geom_point(aes(color = Field, alpha = 1), size = 4) +
+    labs(title = paste('U.S. STEM ', level,'\'s degrees over time', sep = ''),
+         subtitle = 'Proportion of degrees awarded to women',
+         caption = 'Data Source: NCES 2019 Digest Tables') +
+    expand_limits(xmax=2050, xmin = 1950, ymax = 0.9) +
+    theme_bw() +
+    theme(axis.title.x = element_blank(), 
+          axis.title.y = element_blank(),
+          axis.text.x = element_blank(),
+          # axis.text.y = element_blank(),
+          panel.grid.major.x = element_blank(),
+          # panel.grid.major.y = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          axis.ticks.x = element_blank(),
+          panel.border = element_blank(),
+          legend.position = 'none') +
+    geom_hline(yintercept = 0.5, color = '#3c3c3c') +
+    annotate("text", x = 1963, y = 0.515, size = 2.5,
+               label = '50% of degrees earned by women') +
+    geom_vline(xintercept = 1971, alpha = 0.2) +
+    annotate("text", x = 1971, y = -.05, size = 3, label = '1971', fontface = 'bold') +
+    geom_vline(xintercept = 2018, alpha = 0.2) +
+    annotate("text", x = 2018, y = -.05, size = 3, label = '2018', fontface = 'bold') +
+    geom_vline(xintercept = 2030, alpha = 0.2) +
+    annotate("text", x = 2030, y = -.05, size = 2.7, label = '2030\nprojected', fontface = 'bold') +
+    geom_text_repel(data %>% filter(Year==1971), 
+                    mapping = aes(label = paste(Field, round(FemaleProp, digits = 2), sep = ': '), color = Field), 
+                    size = 2.5, fontface = 'bold', nudge_x = -15, segment.color = 'black') +
+    geom_text_repel(data %>% filter(Year==2030), 
+                    mapping = aes(label = paste(Field, round(FemaleProp, digits = 2), sep = ': '), color = Field), 
+                    size = 2.5, fontface = 'bold', nudge_x = 15, segment.color = 'black')
+  
+  ggsave(paste('slope_', level, '.png', sep = ''), plt, width = 6.5, height = 6, path = 'graphs')
+  plt
+}
+```
+
+
+### Bachelor's degrees
+
+```{r}
+slope_graph(df.all, 'Bachelor')
+```
+
+### Master's degrees
+
+```{r}
+slope_graph(df.all, 'Master')
+```
+
+### Doctor's degrees
+
+```{r}
+slope_graph(df.all, 'Doctor')
+```
+

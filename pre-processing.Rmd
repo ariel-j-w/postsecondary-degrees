@@ -103,6 +103,11 @@ write_csv(associates, 'data/associates.csv')
 ```
 
 # Degrees conferred in a specific field, by gender, over time
+
+Next we are going to take the data from specific fields (specifically, STEM fields, using [NSF Approved STEM fields](https://www.btaa.org/docs/default-source/diversity/nsf-approved-fields-of-study.pdf?sfvrsn=1bc446f3_2) as a guide to distinguish) based on the most recently available (i.e. 2019 tables) from Chapter 3, Section 325 of the [NCES Digest of Education Statistics](https://nces.ed.gov/programs/digest/2019menu_tables.asp). 
+
+We have downloaded the raw tables from NCES into `data/raw`, and here we clean and tidy the data before exporting a csv that is ready for analysis. For ease of analysis and visualization, we have chosen to represent the year that degrees were conferred as only a single year. For example, in the tidied data, degrees conferred during the 2017-2018 U.S. academic year will be represented as the year 2018.
+
 ```{r}
 write_field_csv <- function(inFile, rowIdx, outFile) {
   data <- read.xlsx(inFile, 1, 
@@ -112,8 +117,8 @@ write_field_csv <- function(inFile, rowIdx, outFile) {
                        'Bachelor Total', 'Bachelor Male', 'Bachelor Female',
                        'Master Total', 'Master Male', 'Master Female', 
                        'Doctor Total', 'Doctor Male', 'Doctor Female')
-  data <- data[!is.na(data$Year),]
   data$Year <- str_extract(data$Year, '\\d{4}')
+  data <- data[!is.na(data$Year),]
   data$Year <- as.numeric(as.character(data$Year)) + 1
   data$`Bachelor Male` <- as.numeric(as.character(data$`Bachelor Male`))
   data$`Bachelor Female` <- as.numeric(as.character(data$`Bachelor Female`))
@@ -150,16 +155,22 @@ write_field_csv('data/raw/tabn325.20.xls', 5:74, 'data/bio.csv')
 ```
 
 ## Engineering and Engineering Technologies
+Note from the NCES: "Includes degrees in engineering, engineering-related technologies, mechanic and repair technologies, and construction trades for 1969-70 and later years. Degrees in engineering include degrees in all areas of engineering--for example, chemical, civil, electrical, and mechanical engineering--as well as degrees in general engineering."
+
 ```{r write csv: eng}
 write_field_csv('data/raw/tabn325.45.xls', 5:66, 'data/eng.csv')
 ```
 
 ## Health Professions and Related Programs
+Note from the NCES: "Doctor's degrees include medicine (M.D.), dentistry (D.D.S. and D.M.D), and other medical specialty degrees that were classified as first-professional prior to 2010-11."
+
 ```{r write csv: health}
 write_field_csv('data/raw/tabn325.60.xls', 5:62, 'data/health.csv')
 ```
 
 ## Physical Sciences and Science Technologies
+Note from the NCES: "Includes degrees in physical sciences and in science technologies/technicians."
+
 ```{r write csv: physics}
 write_field_csv('data/raw/tabn325.70.xls', 5:66, 'data/physics.csv')
 ```
@@ -170,6 +181,10 @@ write_field_csv('data/raw/tabn325.80.xls', 5:67, 'data/psych.csv')
 ```
 
 ## Social Sciences and History
+Note from the NCES: "The social sciences include anthropology, archeology, criminology, demography, economics, geography, international relations and development, political science and government, sociology, and urban studies."
+
+Additional note: At first we hesitated to include this in our analysis in STEM degrees since history, intuitively, seems to land differently than the traditional STEM categories that we have considered in this analysis. However, the aforementioned NSF STEM Field classifications include "History and Philosophy of Science" along with the vast majority of explicitly listed social science degrees provided by the NCES, so we felt it appropriate, reasonable, and responsible to include this category in our analysis.
+
 ```{r write csv: social}
 write_field_csv('data/raw/tabn325.90.xls', 5:62, 'data/social.csv')
 ```

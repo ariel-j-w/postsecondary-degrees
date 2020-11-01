@@ -14,7 +14,6 @@ Year,Degree level,Count type,value
 1973,Bachelor,Total,42207
 1974,Bachelor,Total,48244
 1975,Bachelor,Total,51609
-NA,Bachelor,Total,NA
 1976,Bachelor,Total,54154
 1977,Bachelor,Total,53464
 1978,Bachelor,Total,51360
@@ -73,7 +72,6 @@ NA,Bachelor,Total,NA
 1973,Bachelor,Male,29625
 1974,Bachelor,Male,33217
 1975,Bachelor,Male,34580
-NA,Bachelor,Male,NA
 1976,Bachelor,Male,35498
 1977,Bachelor,Male,34178
 1978,Bachelor,Male,31673
@@ -132,7 +130,6 @@ NA,Bachelor,Male,NA
 1973,Bachelor,Female,12582
 1974,Bachelor,Female,15027
 1975,Bachelor,Female,17029
-NA,Bachelor,Female,NA
 1976,Bachelor,Female,18656
 1977,Bachelor,Female,19286
 1978,Bachelor,Female,19687
@@ -191,7 +188,6 @@ NA,Bachelor,Female,NA
 1973,Master,Total,6156
 1974,Master,Total,6408
 1975,Master,Total,6429
-NA,Master,Total,NA
 1976,Master,Total,6457
 1977,Master,Total,6953
 1978,Master,Total,6651
@@ -250,7 +246,6 @@ NA,Master,Total,NA
 1973,Master,Male,4317
 1974,Master,Male,4512
 1975,Master,Male,4554
-NA,Master,Male,NA
 1976,Master,Male,4466
 1977,Master,Male,4670
 1978,Master,Male,4353
@@ -309,7 +304,6 @@ NA,Master,Male,NA
 1973,Master,Female,1839
 1974,Master,Female,1896
 1975,Master,Female,1875
-NA,Master,Female,NA
 1976,Master,Female,1991
 1977,Master,Female,2283
 1978,Master,Female,2298
@@ -368,7 +362,6 @@ NA,Master,Female,NA
 1973,Doctor,Total,3583
 1974,Doctor,Total,3358
 1975,Doctor,Total,3334
-NA,Doctor,Total,NA
 1976,Doctor,Total,3347
 1977,Doctor,Total,3335
 1978,Doctor,Total,3255
@@ -427,7 +420,6 @@ NA,Doctor,Total,NA
 1973,Doctor,Male,2892
 1974,Doctor,Male,2684
 1975,Doctor,Male,2612
-NA,Doctor,Male,NA
 1976,Doctor,Male,2631
 1977,Doctor,Male,2627
 1978,Doctor,Male,2481
@@ -486,7 +478,6 @@ NA,Doctor,Male,NA
 1973,Doctor,Female,691
 1974,Doctor,Female,674
 1975,Doctor,Female,722
-NA,Doctor,Female,NA
 1976,Doctor,Female,716
 1977,Doctor,Female,708
 1978,Doctor,Female,774
